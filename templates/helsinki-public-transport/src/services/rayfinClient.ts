@@ -1,7 +1,19 @@
 import { ConnectorsRayfinClient } from '@microsoft/rayfin-client/experimental';
+import { fabricSemanticModel } from '@microsoft/rayfin-connector-fabric-semanticmodel';
 
 import type { DataAppSchema } from '../../rayfin/data/schema';
-import type { AppConnectorsSchema } from '../../rayfin/connectors/schema';
+
+import type {
+  HslModelSchema,
+} from '../../rayfin/connectors/hslModel/schema';
+
+import {
+  connectorConfig as hslModelConfig,
+} from '../../rayfin/connectors/hslModel/schema';
+
+type AppConnectorsSchema = {
+  hslModel: HslModelSchema;
+};
 
 let client: ConnectorsRayfinClient<
   DataAppSchema,
@@ -20,19 +32,34 @@ export function initRayfinClient(config: RayfinBootstrapConfig) {
       DataAppSchema,
       Record<string, never>,
       AppConnectorsSchema
-    >({
-      baseUrl: config.baseUrl.endsWith('/') ? config.baseUrl : `${config.baseUrl}/`,
-      publishableKey: config.publishableKey,
-      useProxy: false,
-      authStorage: true,
-    });
+    >(
+      {
+        baseUrl: config.baseUrl.endsWith('/')
+          ? config.baseUrl
+          : `${config.baseUrl}/`,
+        publishableKey: config.publishableKey,
+        useProxy: false,
+        authStorage: true,
+
+        connectors: {
+          hslModel: hslModelConfig,
+        },
+      },
+      {
+        hslModel: fabricSemanticModel(),
+      },
+    );
   }
+
   return client;
 }
 
 export function getRayfinClient() {
   if (!client) {
-    throw new Error('Rayfin client not initialized - call initRayfinClient() first.');
+    throw new Error(
+      'Rayfin client not initialized - call initRayfinClient() first.',
+    );
   }
+
   return client;
 }
